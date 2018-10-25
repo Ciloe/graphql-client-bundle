@@ -1,0 +1,65 @@
+services:
+    graphql_client_bundle.model:
+        class: GraphQLClientPhp\Model\ApiModel
+        autowire: false
+        arguments: # Setting in DI/GraphQLClientExtension.php
+            - ""
+            - ""
+            - ""
+        public: true
+
+    graphql_client_bundle.logger:
+        class: GraphQLClientBundle\Logger\Logger
+        autowire: false
+        arguments: [""] # Setting in DI/GraphQLClientExtension.php
+
+    graphql_client_bundle.bridge:
+        class: GraphQLClientBundle\Bridge\Bridge
+        autowire: false
+        arguments:
+            - "@graphql_client_bundle.model"
+            - "@graphql_client_bundle.logger"
+        public: true
+
+    graphql_client_bundle.adapter:
+        class: Symfony\Component\Cache\Adapter\PhpArrayAdapter
+        autowire: false
+        arguments: ["%kernel.cache_dir%/graphql-client-bundle/cache.php", "@cache.app"]
+        public: true
+
+    graphql_client_bundle.parser:
+        class: GraphQLClientPhp\Parser\QueryBasicQueryParser
+        autowire: false
+        public: true
+
+    graphql_client_bundle.cache:
+        class: GraphQLClientPhp\Cache\BasicCache
+        autowire: false
+        arguments:
+            - "@graphql_client_bundle.adapter"
+            - "@graphql_client_bundle.parser"
+            - ""
+            - ""
+
+    graphql_client_bundle.warmer:
+        class: GraphQLClientBundle\Cache\CacheWarmer
+        autowire: false
+        arguments:
+            - "@graphql_client_bundle.cache"
+        tags:
+            - { name: kernel.cache_warmer }
+
+    graphql_client_bundle.client:
+        class: GraphQLClientPhp\Client\BasicClient
+        autowire: false
+        arguments:
+            - "@graphql_client_bundle.bridge"
+            - "@graphql_client_bundle.parser"
+        public: true
+
+    graphql_client_bundle.collector:
+        class: GraphQLClientBundle\Collector\Collector
+        autowire: false
+        arguments: ["@graphql_client_bundle.logger"]
+        tags:
+            - { name: data_collector, id: 'graphql-client-bundle.collector', template: '@GraphQLClient/collector/graphql-client.html.twig' }
