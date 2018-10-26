@@ -1,0 +1,56 @@
+services:
+    graph_client_bundle.api_model:
+        class: GraphClientPhp\Model\ApiModel
+        arguments:
+            - ""
+            - ""
+            - ""
+        public: true
+
+    graph_client_bundle.logger:
+        class: GraphClientBundle\Logger\Logger
+        arguments: [""]
+
+    graph_client_bundle.bridge:
+        class: GraphClientBundle\Bridge\Bridge
+        arguments:
+            - "@graph_client_bundle.api_model"
+            - "@graph_client_bundle.logger"
+        public: true
+
+    graph_client_bundle.adapter:
+        class: Symfony\Component\Cache\Adapter\PhpArrayAdapter
+        arguments: ["%kernel.cache_dir%/graph-client-bundle/cache.php", "@cache.app"]
+        public: true
+
+    graph_client_bundle.parser:
+        class: GraphClientPhp\Parser\QueryBasicQueryParser
+        public: true
+
+    graph_client_bundle.cache:
+        class: GraphClientPhp\Cache\BasicCache
+        arguments:
+            - "@graph_client_bundle.adapter"
+            - "@graph_client_bundle.parser"
+            - ""
+            - ""
+
+    graph_client_bundle.warmer:
+        class: GraphClientBundle\Cache\CacheWarmer
+        arguments:
+            - "@graph_client_bundle.cache"
+        tags:
+            - { name: kernel.cache_warmer }
+
+    graph_client_bundle.client:
+        class: GraphClientPhp\Client\BasicClient
+        arguments:
+            - "@graph_client_bundle.bridge"
+            - "@graph_client_bundle.parser"
+        public: true
+
+    graph_client_bundle.collector:
+        class: GraphClientBundle\Collector\Collector
+        arguments: ["@graph_client_bundle.logger"]
+        tags:
+            - { name: data_collector, id: 'graph-client-bundle.collector', template: 'GraphClientBundle:collector:graph-client.html.twig' }
