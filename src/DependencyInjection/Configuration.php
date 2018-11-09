@@ -28,7 +28,7 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
 
         $treeBuilder
-            ->root('graph_client_bundle')
+            ->root('graph_client')
                 ->children()
                     ->arrayNode('sources')
                         ->children()

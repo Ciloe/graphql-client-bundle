@@ -1,6 +1,6 @@
 <?php
 
-namespace AlloCine\GraphClient\Bundle\DependencyInjection;
+namespace GraphClientBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -9,11 +9,6 @@ use Symfony\Component\DependencyInjection\Loader;
 
 class GraphClientExtension extends Extension
 {
-    /**
-     * @var array
-     */
-    private $config;
-
     /**
      * {@inheritdoc}
      *
@@ -25,17 +20,18 @@ class GraphClientExtension extends Extension
             $container,
             new FileLocator(__DIR__ . '/../Resources/config')
         );
-        $loader->load('services.yml');
+        $loader->load('services.yaml');
+        $config = $this->parseConfig($configs);
 
-        $container->getDefinition('graph_client_bundle.api_model')
-            ->setArgument(0, $this->config['api']['host'])
-            ->setArgument(1, $this->config['api']['uri'])
-            ->setArgument(2, $this->config['api']['token']);
+        $container->getDefinition('graph_client_bundle.model')
+            ->setArgument(0, $config['api']['host'])
+            ->setArgument(1, $config['api']['uri'])
+            ->setArgument(2, $config['api']['token']);
 
-        if (!empty($this->config['sources'])) {
+        if (!empty($config['sources'])) {
             $container->getDefinition('graph_client_bundle.cache')
-                ->setArgument(2, $this->config['sources']['paths'])
-                ->setArgument(3, $this->config['sources']['extension']);
+                ->setArgument(2, $config['sources']['paths'])
+                ->setArgument(3, $config['sources']['extension']);
         } else {
             $container->removeDefinition('graph_client_bundle.adapter');
             $container->removeDefinition('graph_client_bundle.cache');
@@ -43,6 +39,21 @@ class GraphClientExtension extends Extension
         }
 
         $container->getDefinition('graph_client_bundle.logger')
-            ->setArgument(0, $this->config['logging_enabled'] ?? false);
+            ->setArgument(0, $config['logging_enabled'] ?? false);
+    }
+
+    /**
+     * @param array $configs
+     *
+     * @return array
+     */
+    private function parseConfig(array $configs): array
+    {
+        $config = [];
+        foreach ($configs as $configEnv) {
+            $config = array_merge($config, $configEnv);
+        }
+
+        return $config;
     }
 }

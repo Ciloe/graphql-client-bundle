@@ -93,6 +93,7 @@ class Bridge implements BridgeInterface
         $payloads = [];
 
         $client = new Client(['base_uri' => $this->model->getHost()]);
+        $this->postAsyncQuery();
         foreach ($queries as $key => $query) {
             $guzzleRequest = new Request(
                 'POST',
@@ -100,20 +101,23 @@ class Bridge implements BridgeInterface
                 $this->getHeaders(),
                 $query
             );
-            $this->postAsyncQuery($key, $query);
+            $this->key = $key;
+            $this->query = $query;
+            $this->postQuery();
             $promise = $client->sendAsync($guzzleRequest);
             $promise->then(
                 function (ResponseInterface $res) use (&$payloads, $key) {
-                    $result = $res->getBody()->getContents();
-                    $this->preAsyncQuery($key, $result);
-                    $payload = json_decode($result);
+                    $this->result = $res->getBody()->getContents();
+                    $this->preQuery();
+                    $payload = json_decode($this->result);
                     $payloads[$key] = $payload;
                 },
                 function (RequestException $e) use (&$payloads, $key) {
                     $result = [
                         ['message' => $this->parseResponseErrors([$e->getMessage()])],
                     ];
-                    $this->preAsyncQuery($key, json_encode($result));
+                    $this->result = json_encode($result);
+                    $this->preQuery();
                     $payloads[$key] = $result;
                 }
             );
@@ -121,6 +125,8 @@ class Bridge implements BridgeInterface
         }
 
         \GuzzleHttp\Promise\settle($promises)->wait();
+
+        $this->preAsyncQuery();
 
         return $payloads;
     }
@@ -145,18 +151,18 @@ class Bridge implements BridgeInterface
      * @param string $key
      * @param string $query
      */
-    public function postAsyncQuery(string $key, string $query): void
+    public function postAsyncQuery(): void
     {
-        $this->logger->start($key, $query);
+        $this->logger->startAsync();
     }
 
     /**
      * @param string $key
      * @param string $result
      */
-    public function preAsyncQuery(string $key, string $result): void
+    public function preAsyncQuery(): void
     {
-        $this->logger->stop($key, $result);
+        $this->logger->stopAsync();
     }
 
     /**

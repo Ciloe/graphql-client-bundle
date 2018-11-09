@@ -47,29 +47,64 @@
         <div class="tab-content">
             <table>
                 <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Details</th>
-                        <th>Duration</th>
-                    </tr>
+                <tr>
+                    <th>#</th>
+                    <th>Details</th>
+                    <th>Duration</th>
+                </tr>
                 </thead>
                 <tbody>
-                    {% for key, query in collector.queries %}
-                        <tr>
-                            <td class="font-normal">{{ loop.index }}</td>
-                            <td class="font-normal">
+                {% for key, query in collector.queries %}
+                    <tr>
+                        <td class="font-normal">
+                            {% if query.type == "async" %}
+                                (Async)
+                            {% endif %}
+                            {{ loop.index }}
+                        </td>
+                        <td class="font-normal">
+                            {% if query.type == "async" %}
+                                {% for queryObject in query.queries %}
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Details</th>
+                                            <th>Duration</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td class="font-normal">{{ loop.index }}</td>
+                                            <td class="font-normal">
+                                                <strong>Query :</strong>
+                                                {{ dump(queryObject.query) }}
+                                                <strong>Result :</strong>
+                                                {{ dump(queryObject.result) }}
+                                            </td>
+                                            <td class="font-normal">
+                                                {% if queryObject.duration is defined %}
+                                                    {{ '%0.2f'|format(queryObject.duration * 1000) }} ms
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                {% endfor %}
+                            {% else %}
                                 <strong>Query :</strong>
                                 {{ dump(query.query) }}
                                 <strong>Result :</strong>
                                 {{ dump(query.result) }}
-                            </td>
-                            <td class="font-normal">
-                                {% if query.duration is defined %}
+                            {% endif %}
+                        </td>
+                        <td class="font-normal">
+                            {% if query.duration is defined %}
                                 {{ '%0.2f'|format(query.duration * 1000) }} ms
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>

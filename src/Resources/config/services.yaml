@@ -1,7 +1,8 @@
 services:
-    graph_client_bundle.api_model:
+    graph_client_bundle.model:
         class: GraphClientPhp\Model\ApiModel
-        arguments:
+        autowire: false
+        arguments: # Setting in DI/GraphClientExtension.php
             - ""
             - ""
             - ""
@@ -9,26 +10,31 @@ services:
 
     graph_client_bundle.logger:
         class: GraphClientBundle\Logger\Logger
-        arguments: [""]
+        autowire: false
+        arguments: [""] # Setting in DI/GraphClientExtension.php
 
     graph_client_bundle.bridge:
         class: GraphClientBundle\Bridge\Bridge
+        autowire: false
         arguments:
-            - "@graph_client_bundle.api_model"
+            - "@graph_client_bundle.model"
             - "@graph_client_bundle.logger"
         public: true
 
     graph_client_bundle.adapter:
         class: Symfony\Component\Cache\Adapter\PhpArrayAdapter
+        autowire: false
         arguments: ["%kernel.cache_dir%/graph-client-bundle/cache.php", "@cache.app"]
         public: true
 
     graph_client_bundle.parser:
         class: GraphClientPhp\Parser\QueryBasicQueryParser
+        autowire: false
         public: true
 
     graph_client_bundle.cache:
         class: GraphClientPhp\Cache\BasicCache
+        autowire: false
         arguments:
             - "@graph_client_bundle.adapter"
             - "@graph_client_bundle.parser"
@@ -37,6 +43,7 @@ services:
 
     graph_client_bundle.warmer:
         class: GraphClientBundle\Cache\CacheWarmer
+        autowire: false
         arguments:
             - "@graph_client_bundle.cache"
         tags:
@@ -44,6 +51,7 @@ services:
 
     graph_client_bundle.client:
         class: GraphClientPhp\Client\BasicClient
+        autowire: false
         arguments:
             - "@graph_client_bundle.bridge"
             - "@graph_client_bundle.parser"
@@ -51,6 +59,7 @@ services:
 
     graph_client_bundle.collector:
         class: GraphClientBundle\Collector\Collector
+        autowire: false
         arguments: ["@graph_client_bundle.logger"]
         tags:
-            - { name: data_collector, id: 'graph-client-bundle.collector', template: 'GraphClientBundle:collector:graph-client.html.twig' }
+            - { name: data_collector, id: 'graph-client-bundle.collector', template: '@GraphClient/collector/graph-client.html.twig' }
