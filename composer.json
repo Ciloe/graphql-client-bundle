@@ -1,7 +1,8 @@
 {
-    "name": "ciloe/graph-client-bundle",
+    "name": "ciloe/graphql-client-bundle",
     "description": "A symfony GraphQL Client Bundle based on GraphQL Client PHP",
-    "type": "library",
+    "type": "symfony-bundle",
+    "keywords": ["GraphQL", "Client", "Bundle"],
     "autoload": {
         "psr-4": {
             "GraphClientBundle\\": "src/"
@@ -32,12 +33,6 @@
         "phpmd/phpmd": "^2.6",
         "sebastian/phpcpd": "^4.0",
         "squizlabs/php_codesniffer": "^3.2"
-    },
-    "conflict": {
-        "symfony/config": "<3.4",
-        "symfony/dependency-injection": "<3.4",
-        "symfony/event-dispatcher": "<3.4",
-        "symfony/var-dumper": "<3.4"
     },
     "minimum-stability": "stable",
     "license": "MIT",
